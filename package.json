@@ -27,6 +27,7 @@
     "@capacitor-community/screen-brightness": "^8.0.0",
     "@capacitor/android": "8.4.1",
     "@capacitor/app": "^8.1.0",
+    "@capacitor/barcode-scanner": "^3.1.0",
     "@capacitor/core": "8.4.1",
     "@capacitor/haptics": "8.0.2",
     "@capacitor/keyboard": "8.0.5",
@@ -68,5 +69,12 @@
     "karma-jasmine-html-reporter": "~2.1.0",
     "typescript": "~5.9.0"
   },
-  "description": "An Ionic project"
+  "description": "An Ionic project",
+  "allowScripts": {
+    "@parcel/watcher@2.6.0": true,
+    "esbuild@0.28.1": true,
+    "lmdb@3.5.1": true,
+    "msgpackr-extract@3.0.4": true,
+    "sharp@0.32.6": true
+  }
 }

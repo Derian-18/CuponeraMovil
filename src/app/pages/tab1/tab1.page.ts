@@ -9,10 +9,12 @@ import {
   IonGrid, IonRow, IonIcon, IonItem, IonButtons, IonButton
 } from '@ionic/angular/standalone';
 
-import { Coupon } from 'src/app/models/coupon.model';
+import { Coupon, ICouponData } from 'src/app/models/coupon.model';
 import { FilterCouponCategoryPipe } from 'src/app/pipes/filter-coupon-category-pipe';
 import { addIcons } from 'ionicons';
 import { cameraOutline } from 'ionicons/icons';
+import { CapacitorBarcodeScanner, CapacitorBarcodeScannerTypeHint, CapacitorBarcodeScannerScanResult } from '@capacitor/barcode-scanner';
+import { ToastService } from 'src/app/services/toast.service';
 
 @Component({
   selector: 'app-tab1',
@@ -22,12 +24,13 @@ import { cameraOutline } from 'ionicons/icons';
     IonHeader, IonToolbar, IonTitle, IonContent, IonLabel, IonSegment, 
     IonSegmentButton, IonSegmentContent, IonSegmentView, FilterCouponCategoryPipe, 
     IonCard, IonCardHeader, IonCardSubtitle, IonCardTitle, IonImg, IonCol, 
-    IonGrid, IonRow, NgTemplateOutlet, IonIcon, IonItem, IonButtons, IonButton
+    IonGrid, IonRow, NgTemplateOutlet, IonIcon, IonButtons, IonButton
   ],
 })
 export class Tab1Page {
   
   private couponService: CouponService = inject(CouponService);
+  private toastService: ToastService = inject(ToastService);
   coupons: Coupon[] = [];
 
   constructor() {
@@ -46,7 +49,34 @@ export class Tab1Page {
   }
 
   startCamera() {
-    console.log('Abriendo cámara para escanear...');
-    // Aquí irá tu lógica para abrir la cámara de la cuponera más adelante
+    CapacitorBarcodeScanner.scanBarcode({
+      hint: CapacitorBarcodeScannerTypeHint.QR_CODE
+    })
+    .then((resultBarcode: CapacitorBarcodeScannerScanResult) => {
+      console.log(resultBarcode);
+      if (resultBarcode.ScanResult) {
+        try {
+          const couponData: ICouponData = JSON.parse(resultBarcode.ScanResult);
+          const coupon = new Coupon(couponData);
+
+          if (coupon.isValid()) { // Asegurar que el cupon sea valido
+            const couponExist = this.coupons.some((c: Coupon) => c.isEqual(coupon));
+
+            if (!couponExist) { // Validando duplicidad
+              this.coupons = [...this.coupons, coupon];
+              this.couponService.saveCoupons(this.coupons);
+              this.toastService.showToast("Cupon agregado");
+            } else {
+              this.toastService.showToast("El cupon ya existe");
+            }
+          } else {
+            this.toastService.showToast("El cupon es Invalido");
+          }
+        } catch (error) {
+          console.error(error);
+          this.toastService.showToast("QR error");
+        }
+      }
+    });
   }
 }
